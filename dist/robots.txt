@@ -1,0 +1,6 @@
+User-agent: Mail.ru
+Allow: /
+
+User-agent: *
+Allow: /
+
