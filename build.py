@@ -149,13 +149,45 @@ hr.rule{border:0;height:1px;background:var(--line);margin:2.4em 0}
 }
 @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
 a:focus-visible,.card:focus-visible{outline:2px solid var(--lav);outline-offset:3px;border-radius:4px}
+/* nav */
+.site-head .wrap{flex-wrap:wrap}
+.nav{margin-left:auto;display:flex;gap:20px;font-size:15px}
+.nav a{color:var(--soft);text-decoration:none}
+.nav a:hover{color:var(--amber)}
+/* каталог */
+.cat-hero{display:grid;grid-template-columns:1fr 1fr;gap:30px;align-items:center;padding:46px 0 30px}
+.cat-hero img{border-radius:16px;border:1px solid var(--line);box-shadow:0 16px 34px -24px rgba(40,30,10,.5)}
+.price{font-family:Fraunces,Georgia,serif;font-size:30px;color:var(--green);margin:.3em 0}
+.price b{color:var(--amber)}
+.buy{display:inline-block;background:var(--green);color:#fff;text-decoration:none;
+  padding:13px 22px;border-radius:10px;font-weight:600;font-size:15px;margin-top:8px}
+.buy:hover{background:#27492e;color:#fff}
+.buy.small{padding:9px 14px;font-size:14px;width:100%;text-align:center;box-sizing:border-box}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;padding:14px 0 56px}
+.prod{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:14px;
+  overflow:hidden;background:#fff}
+.prod img{width:100%;aspect-ratio:1/1;object-fit:cover;background:#f3efe6}
+.prod .b{padding:12px 12px 14px;display:flex;flex-direction:column;gap:4px;flex:1}
+.prod h3{font-family:Fraunces,Georgia,serif;font-size:18px;margin:0}
+.prod .d{color:var(--soft);font-size:13px;margin:0 0 8px;flex:1}
+/* контент-страницы */
+.page{padding:40px 0 20px}
+.page h1{margin-bottom:.3em}
+.page h2{font-size:22px}
+.req{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px 20px;margin:18px 0}
+.req p{margin:.3em 0;font-size:15px}
+@media(max-width:640px){
+  .cat-hero{grid-template-columns:1fr}
+  .grid{grid-template-columns:repeat(2,1fr)}
+  .nav{width:100%;margin-left:0}
+}
 """
 
 HEAD = """<!doctype html><html lang="ru"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{title}</title>
-<meta name="description" content="{desc}">
+<meta name="description" content="{desc}">{zenmeta}
 <link rel="alternate" type="application/rss+xml" title="{site}" href="{base}/rss.xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -163,14 +195,20 @@ HEAD = """<!doctype html><html lang="ru"><head>
 <style>{css}</style>
 </head><body>
 <header class="site-head"><div class="wrap">
-<a class="brand" href="{base}/">Dan<b>Din</b></a><span class="tagline">{site}</span>
+<a class="brand" href="{base}/">Dandian</a>
+<nav class="nav"><a href="{base}/">Статьи</a><a href="{base}/katalog/">Каталог</a><a href="{base}/o-brende/">О бренде</a></nav>
 </div></header>
 """
-FOOT = '<footer class="foot"><div class="wrap">© {year} Dandian · ароматы для дома и настроения</div></footer></body></html>'
+FOOT = """<footer class="foot"><div class="wrap">
+<p>© {year} Dandian · ИП Даниленко А.А. · ИНН 230213000352</p>
+<p><a href="{base}/o-brende/">Контакты</a> · <a href="{base}/politika/">Политика конфиденциальности</a></p>
+</div></footer></body></html>"""
 
 def page_head(title, desc, site):
+    zen = CFG.get("zen_verification", "").strip()
+    zenmeta = f'\n<meta name="zen-verification" content="{html.escape(zen, quote=True)}">' if zen else ""
     return HEAD.format(title=html.escape(title), desc=html.escape(desc),
-                       site=html.escape(site), base=BASE, css=CSS)
+                       site=html.escape(site), base=BASE, css=CSS, zenmeta=zenmeta)
 
 # ---------- сборка ----------
 def build():
@@ -211,7 +249,7 @@ def build():
         outdir = os.path.join(DIST, slug)
         os.makedirs(outdir, exist_ok=True)
         with open(os.path.join(outdir, "index.html"), "w", encoding="utf-8") as f:
-            f.write(h + content + FOOT.format(year=year))
+            f.write(h + content + FOOT.format(year=year, base=BASE))
 
     # главная
     cards = []
@@ -223,12 +261,91 @@ def build():
 <p class="desc">{html.escape(a['description'])}</p></div></a>""")
     idx = page_head(site, CFG["site_description"], site)
     idx += f"""<main class="wrap">
-<section class="hero"><p class="eyebrow">Эфирные масла · по-человечески</p>
+<section class="hero"><p class="eyebrow">Эфирные масла Dandian</p>
 <h1>{html.escape(site)}</h1><p>{html.escape(CFG['site_description'])}</p></section>
 <section class="cards">{''.join(cards)}</section></main>"""
-    idx += FOOT.format(year=year)
+    idx += FOOT.format(year=year, base=BASE)
     with open(os.path.join(DIST, "index.html"), "w", encoding="utf-8") as f:
         f.write(idx)
+
+    # ---- статические страницы: каталог, о бренде, политика ----
+    WB = "https://wildberries.ru/catalog/0/search.aspx?search=WW415544"
+    PRODUCTS = [
+        ("Лаванда", "lavanda.jpg", "Вечер, сон, уют"),
+        ("Эвкалипт", "evkalipt.jpg", "Свежесть, баня, «дышится легче»"),
+        ("Мята", "myata.jpg", "Бодрость и прохлада"),
+        ("Розмарин", "rozmarin.jpg", "Уход за волосами, ритуалы"),
+        ("Лимон", "limon.jpg", "Бодрое утро, чистый дом"),
+        ("Апельсин", "apelsin.jpg", "Тепло и домашний уют"),
+        ("Сосна", "sosna.jpg", "Хвойный лес, баня"),
+        ("Пихта", "pihta.jpg", "Баня, свежесть леса"),
+    ]
+
+    def write_page(slug, title, desc, body):
+        h = page_head(title, desc, site)
+        outdir = os.path.join(DIST, slug)
+        os.makedirs(outdir, exist_ok=True)
+        with open(os.path.join(outdir, "index.html"), "w", encoding="utf-8") as f:
+            f.write(h + body + FOOT.format(year=year, base=BASE))
+
+    prod_cards = "".join(
+        f"""<div class="prod"><img src="{BASE}/assets/products/{img}" alt="Эфирное масло {html.escape(name)} Dandian" loading="lazy">
+<div class="b"><h3>{html.escape(name)}</h3><p class="d">{html.escape(d)}</p>
+<a class="buy small" href="{WB}" target="_blank" rel="noopener">Купить</a></div></div>"""
+        for name, img, d in PRODUCTS)
+    catalog_body = f"""<main class="wrap"><div class="page">
+<p class="eyebrow">Каталог</p><h1>Эфирные масла Dandian</h1>
+<section class="cat-hero">
+<img src="{BASE}/assets/products/nabor.jpg" alt="Набор эфирных масел Dandian, 8 ароматов по 10 мл" width="900" height="1200" loading="lazy">
+<div><h2>Набор из 8 ароматов · 80 мл</h2>
+<p>Лаванда, эвкалипт, мята, розмарин, лимон, апельсин, сосна и пихта — по 10 мл в янтарных флаконах с дозатором-капельницей, в подарочной коробке.</p>
+<p class="price">от <b>700 ₽</b></p>
+<a class="buy" href="{WB}" target="_blank" rel="noopener">Купить на Wildberries</a></div>
+</section>
+<h2>Ароматы по отдельности</h2>
+<section class="grid">{prod_cards}</section>
+</div></main>"""
+    write_page("katalog", "Каталог — эфирные масла Dandian",
+               "Набор из 8 ароматов и масла Dandian по отдельности. Заказ на Wildberries.", catalog_body)
+
+    about_body = f"""<main class="wrap"><div class="page">
+<p class="eyebrow">О бренде</p><h1>Dandian — про эфирные масла по-честному</h1>
+<p class="lead">Мы делаем 100% эфирные масла в янтарных флаконах с дозатором-капельницей и пишем о них просто, без обещаний чудес.</p>
+<p>Dandian — линейка из восьми ароматов: лаванда, эвкалипт, мята, розмарин, лимон, апельсин, сосна и пихта. Продаём по отдельности и набором 80 мл. Заказать можно на Wildberries.</p>
+<h2>О редакции</h2>
+<p>Статьи на сайте готовит команда бренда Dandian. Мы рассказываем, как применять эфирные масла дома, в бане, для ухода и настроения — на основе практики и без медицинских обещаний.</p>
+<h2>Контакты</h2>
+<div class="req">
+<p>E-mail: <a href="mailto:9094433294@mail.ru">9094433294@mail.ru</a></p>
+<p>Телефон: <a href="tel:+79094433294">+7 909 443-32-94</a></p>
+</div>
+<h2>Реквизиты</h2>
+<div class="req">
+<p>ИП Даниленко Анастасия Анатольевна</p>
+<p>ИНН 230213000352</p>
+<p>ОГРНИП 319237500142016</p>
+<p>Адрес: 359405, Республика Калмыкия, Сарпинский р-н, с. Кануково, пер. Чапаева, 10</p>
+</div>
+<a class="buy" href="{WB}" target="_blank" rel="noopener">Каталог на Wildberries</a>
+</div></main>"""
+    write_page("o-brende", "О бренде Dandian — контакты и реквизиты",
+               "О бренде Dandian, о редакции, контакты и реквизиты продавца.", about_body)
+
+    privacy_body = f"""<main class="wrap"><div class="page">
+<p class="eyebrow">Документы</p><h1>Политика конфиденциальности</h1>
+<p>Настоящая политика описывает, как сайт обрабатывает данные посетителей. Оператор — ИП Даниленко Анастасия Анатольевна (ИНН 230213000352).</p>
+<h2>Какие данные обрабатываются</h2>
+<p>Сайт носит информационный характер и не содержит форм регистрации или оформления заказа — заказы оформляются на стороне маркетплейса Wildberries. При посещении могут автоматически собираться обезличенные технические данные (тип браузера, просмотренные страницы) средствами веб-аналитики, без идентификации личности.</p>
+<h2>Файлы cookie</h2>
+<p>Сайт может использовать cookie для корректной работы и статистики. Вы можете отключить cookie в настройках браузера.</p>
+<h2>Передача данных</h2>
+<p>Сайт не передаёт персональные данные третьим лицам, за исключением случаев, предусмотренных законодательством РФ, включая Федеральный закон № 152-ФЗ «О персональных данных».</p>
+<h2>Контакты</h2>
+<p>Вопросы по обработке данных: <a href="mailto:9094433294@mail.ru">9094433294@mail.ru</a></p>
+<p class="meta">Обновлено: {ru_date(datetime.now())}</p>
+</div></main>"""
+    write_page("politika", "Политика конфиденциальности — Dandian",
+               "Политика конфиденциальности сайта Dandian.", privacy_body)
 
     # RSS для Дзена
     items = []
