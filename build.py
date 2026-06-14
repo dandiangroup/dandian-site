@@ -180,6 +180,10 @@ def build():
     shutil.copytree(ASSET_DIR, os.path.join(DIST, "assets"))
     if os.path.exists(os.path.join(ROOT, "robots.txt")):
         shutil.copy(os.path.join(ROOT, "robots.txt"), os.path.join(DIST, "robots.txt"))
+    # файлы-подтверждения прав (Дзен, и т.п.) — кладём в корень сайта как есть
+    for fn in os.listdir(ROOT):
+        if fn.startswith("zen_") and fn.endswith(".html"):
+            shutil.copy(os.path.join(ROOT, fn), os.path.join(DIST, fn))
 
     arts = [parse_article(os.path.join(ART_DIR, fn))
             for fn in os.listdir(ART_DIR) if fn.endswith(".md")]
