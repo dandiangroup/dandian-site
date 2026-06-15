@@ -187,7 +187,7 @@ HEAD = """<!doctype html><html lang="ru"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{title}</title>
-<meta name="description" content="{desc}">{zenmeta}
+<meta name="description" content="{desc}">{zenmeta}{yandexmeta}
 <link rel="alternate" type="application/rss+xml" title="{site}" href="{base}/rss.xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -207,8 +207,11 @@ FOOT = """<footer class="foot"><div class="wrap">
 def page_head(title, desc, site):
     zen = CFG.get("zen_verification", "").strip()
     zenmeta = f'\n<meta name="zen-verification" content="{html.escape(zen, quote=True)}">' if zen else ""
+    yan = CFG.get("yandex_verification", "").strip()
+    yandexmeta = f'\n<meta name="yandex-verification" content="{html.escape(yan, quote=True)}">' if yan else ""
     return HEAD.format(title=html.escape(title), desc=html.escape(desc),
-                       site=html.escape(site), base=BASE, css=CSS, zenmeta=zenmeta)
+                       site=html.escape(site), base=BASE, css=CSS,
+                       zenmeta=zenmeta, yandexmeta=yandexmeta)
 
 # ---------- сборка ----------
 def build():
