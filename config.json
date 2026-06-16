@@ -6,5 +6,6 @@
   "base_url": "https://dandian-site.pages.dev",
   "timezone_offset": "+0300",
   "zen_verification": "pni3CRbXb5pjbsEEUwloA5CtIeMvYTfISKgraTPmH6z1ww7IkpoH7jiOZF5aPqSJ",
-  "yandex_verification": "e505a8dcb9e60ab6"
+  "yandex_verification": "e505a8dcb9e60ab6",
+  "publish_mode": "native-draft"
 }

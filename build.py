@@ -42,7 +42,7 @@ def inline(text):
             lu = html.escape(m.group('lu'), quote=True)
             out.append(f'<a href="{lu}" target="_blank" rel="noopener">{lt}</a>')
         else:
-            out.append(f"<strong>{html.escape(m.group('b'), quote=False)}</strong>")
+            out.append(f"<b>{html.escape(m.group('b'), quote=False)}</b>")
         pos = m.end()
     out.append(html.escape(text[pos:], quote=False))
     return ''.join(out)
@@ -355,14 +355,16 @@ def build():
     for a in arts:
         url = f"{BASE}/{a['slug']}/"
         cover_url = f"{BASE}/assets/{a['cover']}"
-        body_html = md_to_html(a['_body']).replace("]]>", "]]&gt;")
+        fig = f'<figure><img src="{cover_url}"><figcaption>{html.escape(a["title"], quote=False)}</figcaption></figure>'
+        body_html = (fig + md_to_html(a['_body'])).replace("]]>", "]]&gt;")
         items.append(f"""    <item>
       <title>{x(a['title'])}</title>
       <link>{x(url)}</link>
       <guid isPermaLink="true">{x(url)}</guid>
       <pubDate>{rfc822(a['_dt'])}</pubDate>
       <author>{x(CFG['author'])}</author>
-      <category>{x(a.get('category',''))}</category>
+      <media:rating scheme="urn:simple">nonadult</media:rating>
+      <category>{x(a.get('publish', CFG.get('publish_mode','native-draft')))}</category>
       <description>{x(a['description'])}</description>
       <enclosure url="{x(cover_url)}" type="image/jpeg"/>
       <content:encoded><![CDATA[{body_html}]]></content:encoded>
