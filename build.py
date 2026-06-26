@@ -188,6 +188,11 @@ HEAD = """<!doctype html><html lang="ru"><head>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{title}</title>
 <meta name="description" content="{desc}">{zenmeta}{yandexmeta}
+<link rel="icon" href="{base}/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="{base}/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="{base}/favicon-16x16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="{base}/apple-touch-icon.png">
+<link rel="manifest" href="{base}/site.webmanifest">
 <link rel="alternate" type="application/rss+xml" title="{site}" href="{base}/rss.xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -221,6 +226,13 @@ def build():
     shutil.copytree(ASSET_DIR, os.path.join(DIST, "assets"))
     if os.path.exists(os.path.join(ROOT, "robots.txt")):
         shutil.copy(os.path.join(ROOT, "robots.txt"), os.path.join(DIST, "robots.txt"))
+    # статика в корень сайта (favicon, манифест и т.п.)
+    static_dir = os.path.join(ROOT, "static")
+    if os.path.isdir(static_dir):
+        for fn in os.listdir(static_dir):
+            src = os.path.join(static_dir, fn)
+            if os.path.isfile(src):
+                shutil.copy(src, os.path.join(DIST, fn))
     # файлы-подтверждения прав (Дзен, Яндекс.Вебмастер и т.п.) — кладём в корень сайта как есть
     for fn in os.listdir(ROOT):
         if fn.endswith(".html") and (fn.startswith("zen_") or fn.startswith("yandex_")):
@@ -357,6 +369,13 @@ def build():
         cover_url = f"{BASE}/assets/{a['cover']}"
         fig = f'<figure><img src="{cover_url}"><figcaption>{html.escape(a["title"], quote=False)}</figcaption></figure>'
         body_html = (fig + md_to_html(a['_body'])).replace("]]>", "]]&gt;")
+        mode = a.get('publish', CFG.get('publish_mode', 'native-draft')).strip()
+        if mode == 'auto':
+            # авто-публикация: без native-draft Дзен публикует сам по pubDate
+            cats = ['format-article', 'index', 'comment-all']
+        else:
+            cats = ['native-draft']
+        cat_tags = "\n".join(f"      <category>{x(c)}</category>" for c in cats)
         items.append(f"""    <item>
       <title>{x(a['title'])}</title>
       <link>{x(url)}</link>
@@ -364,7 +383,7 @@ def build():
       <pubDate>{rfc822(a['_dt'])}</pubDate>
       <author>{x(CFG['author'])}</author>
       <media:rating scheme="urn:simple">nonadult</media:rating>
-      <category>{x(a.get('publish', CFG.get('publish_mode','native-draft')))}</category>
+{cat_tags}
       <description>{x(a['description'])}</description>
       <enclosure url="{x(cover_url)}" type="image/jpeg"/>
       <content:encoded><![CDATA[{body_html}]]></content:encoded>
