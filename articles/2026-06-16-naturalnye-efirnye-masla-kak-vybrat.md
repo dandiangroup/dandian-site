@@ -1,7 +1,7 @@
 ---
 title: Натуральные эфирные масла: как выбрать и не взять подделку
 slug: naturalnye-efirnye-masla-kak-vybrat
-date: 2026-06-16 15:00
+date: 2026-06-25 18:00
 category: Гид
 cover: cover_vybor.jpg
 description: Как выбрать натуральное эфирное масло и отличить его от отдушки-подделки: простые признаки. Гид.

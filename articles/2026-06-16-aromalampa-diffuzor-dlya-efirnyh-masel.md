@@ -1,7 +1,7 @@
 ---
 title: Аромалампа и диффузор для эфирных масел: как пользоваться, сколько капель
 slug: aromalampa-diffuzor-dlya-efirnyh-masel
-date: 2026-06-16 12:00
+date: 2026-06-25 15:00
 category: Дом
 cover: cover_aromalampa.jpg
 description: Аромалампа и диффузор для эфирных масел: как пользоваться, сколько капель добавлять и в чём разница.
